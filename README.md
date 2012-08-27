@@ -74,4 +74,4 @@ Gumshoe is released under a BSD license.
 Credits
 =======
 
-Picture of Legoman gumshoe CC-BY Herb Real from http://www.flickr.com/photos/venndiagram/5328211162/
+Picture of Legoman gumshoe CC-BY David Anderson from http://www.flickr.com/photos/venndiagram/5328211162/
