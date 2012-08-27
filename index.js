@@ -1,3 +1,4 @@
+var async = require('async')
 var fs = require('fs')
 var os = require('os')
 var path = require('path')
@@ -26,76 +27,73 @@ function result(rule) {
 // *cb* is a function with signature function(err, result)
 function run(baseDir, rules, cb) {
 
-  var done = false
+  var ruleFunctions = []
 
   rules.forEach(function(rule, idx) {
-    // is this the last rule?
-    var last = (idx === rules.length - 1)
-    if (done) return
-    Step(
-      function() {
-        // Each rule must have a filename at this time
-        if (!rule.filename && !done) {
-          done = true
-          return cb("Each rule must have a filename property! " + rule)
-        }
-        this.filename = path.join(baseDir, rule.filename)
-        // stat for existance of file
-        fs.stat(this.filename, this)
-      },
-      function(err, stat) {
-        // Error means file doesn't exist - rule failed, proceed to next rule
-        if (err && (rule.exists || rule.isFile || rule.isDir || rule.grep) && !done) {
-          if (last && !done) return cb("no rules matched", null)
-          return
-        }
+    var f = function(cb) {
+      if (!rule.filename) return cb("Each rule must have a filename property: " + rule, {idx:idx, result:null})
+      var filename = path.join(baseDir, rule.filename)
 
-        // If file exists, but a file-related predicate is set to false, fail the rule
-        if (!err && (rule.exists === false)) {
-          if (last && !done) return cb("no rules matched", null)
-          return
-        }
-        // If grep, we must read file & proceed to next step
-        if (rule.grep) {
-          fs.readFile(this.filename, 'utf8', this)
-        } else {
-          // Otherwise, if these remaining conditions are true, rule succeeds
-          // and we return result of predicate
-          if (rule.isDir === true && stat.isDirectory() && !done) {
-            done = true
-            return cb(null, result(rule))
+      Step(
+        function() {
+          fs.stat(filename, this)
+        },
+        function(err, stat) {
+          // Error means file doesn't exist - rule failed, proceed to next rule
+          if (err && (rule.exists || rule.isFile || rule.isDir || rule.grep)) {
+            return cb(null, {idx: idx, result:null})
           }
-          if (rule.isFile === true && stat.isFile() && !done) {
-            done = true
-            return cb(null, result(rule))
+          if (!err && (rule.exists === false)) {
+            return cb("no rules matched", null)
           }
-          if (rule.exists === true && !done) {
-            done = true
-            return cb(null, result(rule))
+          if (rule.grep) {
+            fs.readFile(filename, 'utf8', this)
+          } else {
+            // Otherwise, if these remaining conditions are true, rule succeeds
+            // and we return result of predicate
+            if (rule.isDir === true && stat.isDirectory()) {
+              return cb(null, {idx: idx, result:result(rule)})
+            }
+            if (rule.isFile === true && stat.isFile()) {
+              return cb(null, {idx: idx, result:result(rule)})
+            }
+            if (rule.exists === true) {
+              return cb(null, {idx: idx, result:result(rule)})
+            }
+
+            // Fallthru
+            return cb(null, {idx: idx, result:null})
           }
+        },
+        function(err, data) {
+          // Couldn't read file - rule failed
+          if (err) return cb(null, {idx:idx, result:null})
 
-          // Proceed to next rule, unless this is the last one
-          if (last && !done) return cb("no rules matched", null)
+          // If the regular expression executes, rule has passed
+          if (rule.grep.exec(data) !== null) return cb(null, {idx:idx, result:result(rule)})
 
-          return
+          // Fallthru
+          return cb(null, {idx: idx, result:null})
         }
-      },
-      function(err, data) {
-        // Couldn't read file - rule failed
-        if (err) {
-          if (last && !done) return cb("no rules matched", null)
-          return
-        }
+      )
+    }
+    ruleFunctions.push(f)
+  })
 
-        // If the regular expression executes, rule has passed
-        if (rule.grep.exec(data) !== null && !done) {
-          done = true
-          return cb(null, result(rule))
-        }
+  async.parallel(ruleFunctions, function(err, results) {
+    if (err) return cb(err, null)
 
-        if (last && !done) return cb("no rules matched a", null)
-      }
-    )
+    var sorted = results.sort(function(a, b) {
+      return a.idx - b.idx
+    })
+
+    for (var i=0; i < sorted.length; i++) {
+      if (sorted[i].result !== null)
+        return cb(null, sorted[i].result)
+    }
+
+    return cb("no rules matched", null)
+
   })
 
 

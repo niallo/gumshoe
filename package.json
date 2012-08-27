@@ -1,6 +1,6 @@
 {
   "name": "gumshoe",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Project type detection library for Node.JS using declarative heuristic predicates",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,8 @@
   "author": "Niall O'Higgins",
   "license": "BSD",
   "dependencies": {
-    "step": "0.0.5"
+    "step": "0.0.5",
+    "async": "~0.1.22"
   },
   "devDependencies": {
     "mocha": "~1.3.0",

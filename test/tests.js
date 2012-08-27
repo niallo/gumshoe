@@ -78,6 +78,8 @@ describe('gumshoe', function() {
 
     it('should support multiple rules', function(done) {
       var rules = [
+        {filename:file, exists:true, grep:/ZZ/, mystery:"unsolved"},
+        {filename:file, exists:false, grep:/express/, mystery:"unsolved"},
         {filename:file, exists:true, grep:/express/, mystery:"unsolved"},
         {filename:file, exists:true, mystery:"solved"}
       ]
@@ -92,7 +94,7 @@ describe('gumshoe', function() {
     it('should pick first matching rule', function(done) {
       var rules = [
         {filename:file, exists:true, mystery:"solved"},
-        {filename:file, exists:true, grep:/express/i, mystery:"unsolved"}
+        {filename:file, exists:true, grep:/express/i, mystery:"unsolved"},
       ]
 
       gumshoe.run(process.cwd(), rules, function(err, res) {
