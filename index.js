@@ -2,7 +2,6 @@ var fs = require('fs')
 var os = require('os')
 var path = require('path')
 var Step = require('step')
-var s = require('long-stack-traces')
 
 // Return an object created by removing all special properties from
 // a rules object.
