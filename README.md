@@ -27,7 +27,7 @@ More complicated example:
 // Detect a node.js project using connect, express or null frameworks
 var rules = [
     {filename:"package.json", grep:/express/i, language:"node.js", framework:"express"},
-    {filename:"package.json", grep:/connect/i, language:"node.js", framework:"connect"}
+    {filename:"package.json", grep:/connect/i, language:"node.js", framework:"connect"},
     {filename:"package.json", exists:true, language:"node.js", framework:null}
 ]
 
