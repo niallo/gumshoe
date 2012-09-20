@@ -144,6 +144,91 @@ describe('gumshoe', function() {
         done()
       })
     })
+
+    it('should fail jsonKeyExists predicate when invalid JSON', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo", mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.exist
+        expect(res).to.be.null
+
+        done()
+      })
+    })
+
+    it('should pass jsonKeyExists predicate when 1-level-nested key present', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo", mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":"1"}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.be.null
+        expect(res).to.eql({mystery:"solved"})
+
+        done()
+      })
+    })
+
+    it('should pass jsonKeyExists predicate when 2-level-nested key present', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo.bar", mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.be.null
+        expect(res).to.eql({mystery:"solved"})
+
+        done()
+      })
+    })
+
+    it('should pass jsonKeyExists predicate when 2-level-nested key missing', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo.bar", mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"car":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.exist
+        expect(res).to.be.null
+
+        done()
+      })
+    })
+
+    it('should support true jsonKeyExists with grep predicate AND', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo.bar", grep:/foo/, mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.be.null
+        expect(res).to.eql({mystery:"solved"})
+
+        done()
+      })
+    })
+
+    it('should support false jsonKeyExists with grep predicate AND', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo.bar", grep:/express/, mystery:"solved"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, res) {
+        expect(err).to.exist
+        expect(res).to.be.null
+
+        done()
+      })
+    })
+
   })
 
 })

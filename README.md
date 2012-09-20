@@ -42,6 +42,7 @@ property names which are evaluated as predicates:
 - `filename`: This is the filename relative to the `baseDir` to look for. Each rule must have a `filename` property or Gumshoe will complain.
 - `grep`: `filename` must exist and content must match the regular expression provided as value to `grep`
 - `exists`: Boolean value. `true` means `filename` must exist, `false` means `filename` must not exist. This does not care what kind of file it is.
+- `jsonKeyExists`: String value. This is the name of a key in the JSON data which must exist in `filename`. Nested keys can be specified using dot notation. For example, "foo.bar" would match `{"foo":{"bar":1}}`.
 
 When a rule succeeds and is matched, it is copied with all properties except
 for the reserved properties. Hence you are free to use any key names you wish

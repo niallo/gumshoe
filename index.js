@@ -9,7 +9,7 @@ var Step = require('step')
 function result(rule) {
   var r = {}
 
-  var reserved = ['filename', 'exists', 'grep', 'isFile', 'isDir', 'mode']
+  var reserved = ['filename', 'exists', 'grep', 'isFile', 'isDir', 'mode', 'jsonKeyExists']
 
   Object.keys(rule).forEach(function(key) {
     if (reserved.indexOf(key) !== -1) return
@@ -58,6 +58,7 @@ function run(baseDir, rules, cb) {
           fs.stat(filename, this)
         },
         function(err, stat) {
+          this.stat = stat
           // Error means file doesn't exist - rule failed, proceed to next rule
           if (err && (rule.exists || rule.isFile || rule.isDir || rule.grep)) {
             return cb(null, {idx: idx, result:null})
@@ -65,7 +66,7 @@ function run(baseDir, rules, cb) {
           if (!err && (rule.exists === false)) {
             return cb("no rules matched", null)
           }
-          if (rule.grep) {
+          if (rule.grep || rule.jsonKeyExists) {
             fs.readFile(filename, 'utf8', this)
           } else {
             // Otherwise, if these remaining conditions are true, rule succeeds
@@ -88,8 +89,33 @@ function run(baseDir, rules, cb) {
           // Couldn't read file - rule failed
           if (err) return cb(null, {idx:idx, result:null})
 
+          var grepPassed = (rule.grep && rule.grep.exec(data) !== null)
           // If the regular expression executes, rule has passed
-          if (rule.grep.exec(data) !== null) return cb(null, {idx:idx, result:result(rule)})
+          if (grepPassed) {
+            // If no further predicates, rule has passed
+            if (rule.jsonKeyExists === undefined) {
+              return cb(null, {idx:idx, result:result(rule)})
+            }
+          }
+          // If there is a grep and it failed, rule fails
+          if (rule.grep && !grepPassed) {
+              return cb(null, {idx:idx, result:null})
+          }
+          
+          // If the specified json key exists, rule has passed
+          if (rule.jsonKeyExists) {
+            try {
+              var json = JSON.parse(data)
+            } catch(e) {
+              return cb(null, {idx:idx, result:null})
+            }
+            if (jsonKeyExists(json, rule.jsonKeyExists)) {
+              return cb(null, {idx:idx, result:result(rule)})
+            } else {
+              return cb(null, {idx:idx, result:null})
+            }
+
+          }
 
           // Fallthru
           return cb(null, {idx: idx, result:null})
@@ -119,6 +145,7 @@ function run(baseDir, rules, cb) {
 }
 
 module.exports = {
+  jsonKeyExists:jsonKeyExists,
   result:result,
   run:run,
 }
