@@ -19,6 +19,25 @@ function result(rule) {
   return r
 }
 
+// Search a JSON object for a key.
+// Nested keys can be specified via a '.' in the string.
+// E.g. "scripts.test" would test for json[scripts][test].
+function jsonKeyExists(json, key) {
+  var keys = key.split('.')
+  var cur = json
+
+  for (var i = 0; i < keys.length; i++) {
+    try {
+      cur = cur[keys[i]]
+      if (cur === undefined) return false
+    } catch(e) {
+      return false
+    }
+  }
+
+  return true
+}
+
 //
 // Run the rules within baseDir
 //

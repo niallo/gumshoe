@@ -5,6 +5,34 @@ var os = require('os')
 
 describe('gumshoe', function() {
 
+  describe('#jsonKeyExists', function() {
+    it('should return true on top-level key presence', function() {
+      expect(gumshoe.jsonKeyExists({foo:1}, "foo")).to.be.true
+    })
+
+    it('should return false on missing top-level key', function() {
+      expect(gumshoe.jsonKeyExists({bar:1}, "foo")).to.be.false
+    })
+
+    it('should return true on 1-level-nested key', function() {
+      expect(gumshoe.jsonKeyExists({foo:{bar:1}}, "foo.bar")).to.be.true
+    })
+
+    it('should return false on missing 1-level-nested key', function() {
+      expect(gumshoe.jsonKeyExists({foo:{car:1}}, "foo.bar")).to.be.false
+    })
+
+    it('should return true on 2-level-nested key', function() {
+      expect(gumshoe.jsonKeyExists({foo:{bar:{bof:1}}}, "foo.bar.bof")).to.be.true
+    })
+
+    it('should return false on missing 2-level-nested key', function() {
+      expect(gumshoe.jsonKeyExists({foo:{bar:{cof:1}}}, "foo.bar.bof")).to.be.false
+    })
+
+
+  })
+
   describe('#result', function() {
     it('should strip out reserved properties from rules', function() {
       var rule = {filename:"package.json", exists:true, grep:/connect/i, framework:"connect", language:"node.js"}
