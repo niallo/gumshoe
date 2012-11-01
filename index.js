@@ -43,7 +43,7 @@ function jsonKeyExists(json, key) {
 //
 // *baseDir* directory within which to evaluate rules
 // *rules* an object with a "rules" property which is a list of gumshoe predicates
-// *cb* is a function with signature function(err, result)
+// *cb* is a function with signature function(err, firstResult, sortedResults)
 function run(baseDir, rules, cb) {
 
   var ruleFunctions = []
@@ -132,9 +132,16 @@ function run(baseDir, rules, cb) {
       return a.idx - b.idx
     })
 
+    var allRules = []
+    for (var i = 0; i < sorted.length; i++) {
+      if (sorted[i].result !== null) {
+        allRules.push(sorted[i].result)
+      }
+    }
     for (var i=0; i < sorted.length; i++) {
       if (sorted[i].result !== null)
-        return cb(null, sorted[i].result)
+        // error, first matched rule, all rules
+        return cb(null, sorted[i].result, allRules)
     }
 
     return cb("no rules matched", null)

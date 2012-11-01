@@ -229,6 +229,23 @@ describe('gumshoe', function() {
       })
     })
 
+    it('should return list of matching rules as third argument', function(done) {
+      var rules = [
+        {filename:file, jsonKeyExists:"foo.bar", grep:/foo/, mystery:"solved"},
+        {filename:file, jsonKeyExists:"foo.bar", grep:/foo/, mystery:"solved2"}
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, firstMatch, allMatches) {
+        expect(err).to.be.null
+        expect(firstMatch).to.eql({mystery:"solved"})
+        expect(allMatches[0]).to.eql({mystery:"solved"})
+        expect(allMatches[1]).to.eql({mystery:"solved2"})
+
+        done()
+      })
+    })
+
   })
 
 })
