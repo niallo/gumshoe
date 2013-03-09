@@ -39,7 +39,7 @@ Rule Structure
 As shown above, rules are merely objects with some properties. Gumshoe provides a set of special, reserved
 property names which are evaluated as predicates:
 
-- `filename`: This is the filename relative to the `baseDir` to look for. Each rule must have a `filename` property or Gumshoe will complain.
+- `filename`: This is the filename relative to the `baseDir` to look for. Each rule must have a `filename` property or Gumshoe will complain. Value may be a glob as supported by the [node-glob](https://github.com/isaacs/node-glob) library.
 - `grep`: `filename` must exist and content must match the regular expression provided as value to `grep`
 - `exists`: Boolean value. `true` means `filename` must exist, `false` means `filename` must not exist. This does not care what kind of file it is.
 - `jsonKeyExists`: String value. This is the name of a key in the JSON data which must exist in `filename`. Nested keys can be specified using dot notation. For example, "foo.bar" would match `{"foo":{"bar":1}}`.

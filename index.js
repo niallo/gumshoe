@@ -1,5 +1,6 @@
 var async = require('async')
 var fs = require('fs')
+var glob = require('glob')
 var os = require('os')
 var path = require('path')
 var Step = require('step')
@@ -9,7 +10,7 @@ var Step = require('step')
 function result(rule) {
   var r = {}
 
-  var reserved = ['filename', 'exists', 'grep', 'isFile', 'isDir', 'mode', 'jsonKeyExists']
+  var reserved = ['filename', 'exists', 'grep', 'jsonKeyExists']
 
   Object.keys(rule).forEach(function(key) {
     if (reserved.indexOf(key) !== -1) return
@@ -51,32 +52,27 @@ function run(baseDir, rules, cb) {
   rules.forEach(function(rule, idx) {
     var f = function(cb) {
       if (!rule.filename) return cb("Each rule must have a filename property: " + rule, {idx:idx, result:null})
-      var filename = path.join(baseDir, rule.filename)
-
       Step(
         function() {
-          fs.stat(filename, this)
+          glob(rule.filename, {cwd:baseDir}, this)
         },
-        function(err, stat) {
-          this.stat = stat
+        function(err, matches) {
+          this.matches = matches
+          if (matches.length === 0) {
+            err = "no files found"
+          }
           // Error means file doesn't exist - rule failed, proceed to next rule
-          if (err && (rule.exists || rule.isFile || rule.isDir || rule.grep)) {
+          if (err && (rule.exists || rule.grep)) {
             return cb(null, {idx: idx, result:null})
           }
           if (!err && (rule.exists === false)) {
             return cb("no rules matched", null)
           }
           if (rule.grep || rule.jsonKeyExists) {
-            fs.readFile(filename, 'utf8', this)
+            fs.readFile(matches[0], 'utf8', this)
           } else {
             // Otherwise, if these remaining conditions are true, rule succeeds
             // and we return result of predicate
-            if (rule.isDir === true && stat.isDirectory()) {
-              return cb(null, {idx: idx, result:result(rule)})
-            }
-            if (rule.isFile === true && stat.isFile()) {
-              return cb(null, {idx: idx, result:result(rule)})
-            }
             if (rule.exists === true) {
               return cb(null, {idx: idx, result:result(rule)})
             }

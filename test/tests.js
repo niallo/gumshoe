@@ -47,6 +47,8 @@ describe('gumshoe', function() {
   describe('#run', function() {
 
     var file = "_test.foobar"
+    var file2 = "_test2.foobar"
+    var file3 = "_test3.go"
 
     after(function() {
       try {
@@ -242,6 +244,34 @@ describe('gumshoe', function() {
         expect(allMatches[0]).to.eql({mystery:"solved"})
         expect(allMatches[1]).to.eql({mystery:"solved2"})
 
+        done()
+      })
+    })
+
+    it('should support filename globs', function(done) {
+      var rules = [
+        {filename:"*.foobar", exists:true, mystery:"solved"},
+        {filename:"*.go", exists:true, mystery:"solved2"},
+      ]
+
+      fs.writeFileSync(file, '{"foo":{"bar":1}}', 'utf8')
+      fs.writeFileSync(file2, '{"foo":{"bar":1}}', 'utf8')
+      fs.writeFileSync(file3, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, firstMatch, allMatches) {
+        expect(err).to.be.null
+        expect(firstMatch).to.eql({mystery:"solved"})
+        done()
+      })
+    })
+
+    it('should support negative filename globs', function(done) {
+      var rules = [
+        {filename:"*.go", exists:false, mystery:"solved2"},
+      ]
+
+      fs.writeFileSync(file3, '{"foo":{"bar":1}}', 'utf8')
+      gumshoe.run(process.cwd(), rules, function(err, firstMatch, allMatches) {
+        expect(err).to.exist
         done()
       })
     })
