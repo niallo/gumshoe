@@ -69,7 +69,7 @@ function run(baseDir, rules, cb) {
             return cb("no rules matched", null)
           }
           if (rule.grep || rule.jsonKeyExists) {
-            fs.readFile(matches[0], 'utf8', this)
+            fs.readFile(path.join(baseDir, matches[0]), 'utf8', this)
           } else {
             // Otherwise, if these remaining conditions are true, rule succeeds
             // and we return result of predicate
