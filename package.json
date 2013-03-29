@@ -1,6 +1,6 @@
 {
   "name": "gumshoe",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Project type detection library for Node.JS using declarative heuristic predicates",
   "main": "index.js",
   "scripts": {
